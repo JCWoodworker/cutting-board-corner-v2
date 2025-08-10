@@ -1,6 +1,6 @@
-# The Board Room - Frontend
+# Cutting Board Corner - Frontend
 
-Welcome to the frontend repository for The Board Room, a global online community dedicated to cutting board enthusiasts, makers, and curators. This application provides a platform for users to catalog their collections, share care techniques, discover new recipes, and connect with artisans and suppliers from around the world.
+Welcome to the frontend repository for Cutting Board Corner, a global online community dedicated to cutting board enthusiasts, makers, and curators. This application provides a platform for users to catalog their collections, share care techniques, discover new recipes, and connect with artisans and suppliers from around the world.
 
 This project is built with a modern, scalable, and developer-friendly tech stack, designed for rapid development and a fantastic user experience.
 
