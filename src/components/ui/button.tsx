@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react"
-import { cn } from "../../shared/utils/cn"
+import { cn } from "@/utils/cn"
 
 type ButtonVariant = "default" | "secondary" | "outline"
 type ButtonSize = "sm" | "md" | "lg"
