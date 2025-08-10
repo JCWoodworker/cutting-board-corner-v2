@@ -1,0 +1,303 @@
+# Cursor Rules for Cutting Board Corner V2 Frontend
+
+This file provides rules for Cursor's AI to follow when generating or editing code for this project. Adhering to these rules is crucial for maintaining code consistency, quality, and architectural integrity.
+
+## Core Technologies & Architecture
+
+- **Framework**: React with Vite
+- **Language**: TypeScript
+- **UI**: shadcn/ui and Tailwind CSS. Do not use any other UI library (like Material-UI, Chakra) or write custom CSS files. All styling must be done with Tailwind classes.
+- **State Management**: TanStack Query (@tanstack/react-query) for all server state. Do not use Redux, Zustand, or useState for server data.
+- **API Client**: Axios, wrapped by custom request handlers located in `src/shared/api/requests.ts`.
+- **Architecture**: Feature-based directory structure.
+
+## Rule: Creating a New Feature
+
+When asked to "create a new feature" (e.g., "add a comments feature"), follow this structure precisely:
+
+1. Create a new directory inside `src/features/`. For a "comments" feature, this would be `src/features/comments/`.
+2. Inside the new feature directory, create the following subdirectories and files:
+   - `api/api.ts`: For API request functions.
+   - `hooks/useComments.ts`: For TanStack Query custom hooks.
+   - `components/`: For React components specific to this feature.
+   - `types/types.ts`: For all TypeScript interfaces and types related to this feature.
+
+Example structure for a "comments" feature:
+
+```text
+src/
+└── features/
+    └── comments/
+        ├── api/
+        │   └── api.ts
+        ├── components/
+        │   ├── CommentList.tsx
+        │   └── CreateCommentForm.tsx
+        ├── hooks/
+        │   └── useComments.ts
+        └── types/
+            └── types.ts
+```
+
+## Rule: Adding API Endpoints
+
+All interactions with the backend API must follow this pattern:
+
+1. **Use the Generic Request Handlers**: All API calls must use the exported functions (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`) from `src/shared/api/requests.ts`. Do not use `axios` directly in feature-specific API files.
+2. **Location**: Place new API functions in the relevant feature's `api/api.ts` file.
+3. **Typing**: Define request and response types in the feature's `types/types.ts` file and import them into the `api.ts` file.
+
+Example for `src/features/comments/api/api.ts`:
+
+```typescript
+// src/features/comments/api/api.ts
+import { GET, POST } from '@/shared/api/requests';
+import { Comment, CreateCommentData, CommentsResponse } from '@/features/comments/types/types';
+
+// Function to get all comments for a board
+export const getComments = async (boardId: string): Promise<CommentsResponse> => {
+  return (await GET<CommentsResponse>(`/boards/${boardId}/comments`)).data;
+};
+
+// Function to create a new comment
+export const createComment = async (boardId: string, data: CreateCommentData): Promise<Comment> => {
+  return (await POST(`/boards/${boardId}/comments`, data)).data;
+};
+```
+
+## Rule: Creating TanStack Query Hooks
+
+For every API endpoint, create a corresponding custom hook using `useQuery` (for fetching data) or `useMutation` (for creating/updating/deleting data).
+
+- **Location**: Place these hooks in the feature's `hooks/` directory (e.g., `src/features/comments/hooks/useComments.ts`).
+- **Query Keys**: Use a structured query key factory to ensure consistency and prevent collisions.
+- **Implementation**: The hook should import and call the corresponding function from the feature's `api/api.ts` file.
+
+Example for `src/features/comments/hooks/useComments.ts`:
+
+```typescript
+// src/features/comments/hooks/useComments.ts
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getComments, createComment } from '@/features/comments/api/api';
+import { CreateCommentData } from '@/features/comments/types/types';
+
+// Query Key Factory
+export const commentKeys = {
+  all: ['comments'] as const,
+  lists: () => [...commentKeys.all, 'list'] as const,
+  list: (boardId: string) => [...commentKeys.lists(), { boardId }] as const,
+};
+
+// Hook to fetch comments
+export const useComments = (boardId: string) => {
+  return useQuery({
+    queryKey: commentKeys.list(boardId),
+    queryFn: () => getComments(boardId),
+    enabled: !!boardId,
+  });
+};
+
+// Hook to create a comment
+export const useCreateComment = (boardId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateCommentData) => createComment(boardId, data),
+    onSuccess: () => {
+      // Invalidate and refetch the comments list for the specific board
+      queryClient.invalidateQueries({ queryKey: commentKeys.list(boardId) });
+    },
+  });
+};
+```
+
+## Rule: Creating UI Components
+
+- **Component Library**: Always use shadcn/ui components for building the UI. Import them from `@/components/ui/...`.
+- **Styling**: Always use Tailwind CSS utility classes for styling. Do not write separate `.css` or `.module.css` files.
+- **Location**:
+  - Components specific to one feature go in `src/features/[featureName]/components/`.
+  - Components that are truly generic and reusable across multiple features go in `src/components/`.
+- **File Naming**: Use PascalCase for component file names (e.g., `BoardCard.tsx`).
+
+Example of a feature-specific component:
+
+```typescript
+// src/features/boards/components/BoardCard.tsx
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Board } from '@/features/boards/types/types';
+
+interface BoardCardProps {
+  board: Board;
+}
+
+export const BoardCard = ({ board }: BoardCardProps) => {
+  return (
+    <Card className="w-full max-w-sm">
+      <CardHeader>
+        <CardTitle>{board.name}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground">{board.woodSpecies}</p>
+      </CardContent>
+    </Card>
+  );
+};
+```
+
+Cursor Rules for Cutting Board Corner V2 Frontend
+This file provides rules for Cursor's AI to follow when generating or editing code for this project. Adhering to these rules is crucial for maintaining code consistency, quality, and architectural integrity.
+
+Core Technologies & Architecture
+Framework: React with Vite
+
+Language: TypeScript
+
+UI: shadcn/ui and Tailwind CSS. Do not use any other UI library (like Material-UI, Chakra) or write custom CSS files. All styling must be done with Tailwind classes.
+
+State Management: TanStack Query (@tanstack/react-query) for all server state. Do not use Redux, Zustand, or useState for server data.
+
+API Client: Axios, wrapped by custom request handlers located in src/shared/api/requests.ts.
+
+Architecture: Feature-based directory structure.
+
+Rule: Creating a New Feature
+When asked to "create a new feature" (e.g., "add a comments feature"), follow this structure precisely:
+
+Create a new directory inside src/features/. For a "comments" feature, this would be src/features/comments/.
+
+Inside the new feature directory, create the following subdirectories and files:
+
+api/api.ts: For API request functions.
+
+hooks/useComments.ts: For TanStack Query custom hooks.
+
+components/: For React components specific to this feature.
+
+types/types.ts: For all TypeScript interfaces and types related to this feature.
+
+Example Structure for a "Comments" feature:
+src/
+└── features/
+└── comments/
+├── api/
+│   └── api.ts
+├── components/
+│   ├── CommentList.tsx
+│   └── CreateCommentForm.tsx
+├── hooks/
+│   └── useComments.ts
+└── types/
+└── types.ts
+
+---
+
+## Rule: Adding API Endpoints
+
+All interactions with the backend API must follow this pattern:
+
+1. **Use the Generic Request Handlers**: All API calls **must** use the exported functions (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`) from `src/shared/api/requests.ts`. **Do not** use `axios` directly in feature-specific API files.
+
+2. **Location**: Place new API functions in the relevant feature's `api/api.ts` file.
+
+3. **Typing**: Define request and response types in the feature's `types/types.ts` file and import them into the `api.ts` file.
+
+**Example for `src/features/comments/api/api.ts`:**
+
+```typescript
+// src/features/comments/api/api.ts
+import { GET, POST } from '@/shared/api/requests';
+import { Comment, CreateCommentData, CommentsResponse } from '@/features/comments/types/types';
+
+// Function to get all comments for a board
+export const getComments = async (boardId: string): Promise<CommentsResponse> => {
+  return (await GET<CommentsResponse>(`/boards/${boardId}/comments`)).data;
+};
+
+// Function to create a new comment
+export const createComment = async (boardId: string, data: CreateCommentData): Promise<Comment> => {
+  return (await POST(`/boards/${boardId}/comments`, data)).data;
+};
+Rule: Creating TanStack Query Hooks
+For every API endpoint, create a corresponding custom hook using useQuery (for fetching data) or useMutation (for creating/updating/deleting data).
+
+Location: Place these hooks in the feature's hooks/ directory (e.g., src/features/comments/hooks/useComments.ts).
+
+Query Keys: Use a structured query key factory to ensure consistency and prevent collisions.
+
+Implementation: The hook should import and call the corresponding function from the feature's api/api.ts file.
+
+Example for src/features/comments/hooks/useComments.ts:
+
+TypeScript
+
+// src/features/comments/hooks/useComments.ts
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getComments, createComment } from '@/features/comments/api/api';
+import { CreateCommentData } from '@/features/comments/types/types';
+
+// Query Key Factory
+export const commentKeys = {
+  all: ['comments'] as const,
+  lists: () => [...commentKeys.all, 'list'] as const,
+  list: (boardId: string) => [...commentKeys.lists(), { boardId }] as const,
+};
+
+// Hook to fetch comments
+export const useComments = (boardId: string) => {
+  return useQuery({
+    queryKey: commentKeys.list(boardId),
+    queryFn: () => getComments(boardId),
+    enabled:!!boardId,
+  });
+};
+
+// Hook to create a comment
+export const useCreateComment = (boardId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateCommentData) => createComment(boardId, data),
+    onSuccess: () => {
+      // Invalidate and refetch the comments list for the specific board
+      queryClient.invalidateQueries({ queryKey: commentKeys.list(boardId) });
+    },
+  });
+};
+Rule: Creating UI Components
+Component Library: Always use shadcn/ui components for building the UI. Import them from @/components/ui/....
+
+Styling: Always use Tailwind CSS utility classes for styling. Do not write separate .css or .module.css files.
+
+Location:
+
+Components specific to one feature go in src/features/[featureName]/components/.
+
+Components that are truly generic and reusable across multiple features go in src/components/.
+
+File Naming: Use PascalCase for component file names (e.g., BoardCard.tsx).
+
+Example of a feature-specific component:
+
+TypeScript
+
+// src/features/boards/components/BoardCard.tsx
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Board } from "@/features/boards/types/types";
+
+interface BoardCardProps {
+  board: Board;
+}
+
+export const BoardCard = ({ board }: BoardCardProps) => {
+  return (
+    <Card className="w-full max-w-sm">
+      <CardHeader>
+        <CardTitle>{board.name}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground">{board.woodSpecies}</p>
+      </CardContent>
+    </Card>
+  );
+};
+
+
