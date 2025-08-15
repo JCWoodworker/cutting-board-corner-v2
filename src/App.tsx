@@ -1,9 +1,21 @@
 import "./App.css"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+	DialogClose,
+} from "@/components/ui/dialog"
+import { useForm, ValidationError } from "@formspree/react"
 
 function App() {
 	const [mobileOpen, setMobileOpen] = useState(false)
+	const [state, handleSubmit] = useForm("mjkozzbg")
 	return (
 		<main className="min-h-screen flex flex-col">
 			<header className="sticky top-0 z-50 bg-surface-50/90 backdrop-blur border-b border-neutral-200/60">
@@ -144,9 +156,90 @@ function App() {
 							artisans—currently in active development.
 						</p>
 						<div className="mt-8 flex flex-col sm:flex-row gap-3">
-							<Button asChild size="lg">
-								<a href="#notify">Get launch updates</a>
-							</Button>
+							<Dialog>
+								<DialogTrigger asChild>
+									<Button size="lg">Get launch updates</Button>
+								</DialogTrigger>
+								<DialogContent className="sm:max-w-md">
+									{state.succeeded ? (
+										<div className="space-y-4">
+											<DialogHeader>
+												<DialogTitle>Thanks for joining!</DialogTitle>
+												<DialogDescription>
+													We&apos;ll email you occasional updates as the app
+													comes together.
+												</DialogDescription>
+											</DialogHeader>
+											<DialogFooter>
+												<DialogClose asChild>
+													<Button variant="secondary">Close</Button>
+												</DialogClose>
+											</DialogFooter>
+										</div>
+									) : (
+										<form onSubmit={handleSubmit} className="space-y-4">
+											<DialogHeader>
+												<DialogTitle>Get launch updates</DialogTitle>
+												<DialogDescription>
+													Join the list to receive updates on launch and early
+													features.
+												</DialogDescription>
+											</DialogHeader>
+											<div className="grid gap-3">
+												<div className="grid gap-1.5">
+													<label
+														htmlFor="firstName"
+														className="text-sm font-medium text-neutral-800"
+													>
+														First name
+													</label>
+													<input
+														id="firstName"
+														name="firstName"
+														type="text"
+														required
+														autoComplete="given-name"
+														className="block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+														placeholder="Jane"
+													/>
+													<ValidationError
+														prefix="First name"
+														field="firstName"
+														errors={state.errors}
+													/>
+												</div>
+												<div className="grid gap-1.5">
+													<label
+														htmlFor="email"
+														className="text-sm font-medium text-neutral-800"
+													>
+														Email
+													</label>
+													<input
+														id="email"
+														name="email"
+														type="email"
+														required
+														autoComplete="email"
+														className="block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+														placeholder="jane@example.com"
+													/>
+													<ValidationError
+														prefix="Email"
+														field="email"
+														errors={state.errors}
+													/>
+												</div>
+											</div>
+											<DialogFooter>
+												<Button type="submit" disabled={state.submitting}>
+													{state.submitting ? "Submitting..." : "Join the list"}
+												</Button>
+											</DialogFooter>
+										</form>
+									)}
+								</DialogContent>
+							</Dialog>
 							<Button variant="outline" size="lg" asChild>
 								<a href="#learn">Learn more</a>
 							</Button>
