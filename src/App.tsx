@@ -240,9 +240,6 @@ function App() {
 									)}
 								</DialogContent>
 							</Dialog>
-							<Button variant="outline" size="lg" asChild>
-								<a href="#learn">Learn more</a>
-							</Button>
 						</div>
 						<div className="mt-8 flex items-center gap-4 text-sm text-neutral-600">
 							<span className="inline-flex items-center gap-2">
